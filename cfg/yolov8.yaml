@@ -1,0 +1,17 @@
+path: ./yolo_dataset
+train: images/train
+val: images/val
+test: images/test
+ 
+# Classes
+nc: 9 # the number of classes
+names:
+  0: motorbike
+  1: DHelmet
+  2: DNoHelmet
+  3: P1Helmet
+  4: P1NoHelmet
+  5: P2Helmet
+  6: P2NoHelmet
+  7: P0Helmet
+  8: P0NoHelmet
