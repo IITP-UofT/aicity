@@ -67,20 +67,20 @@ class CustomDataset(Dataset):
         train_labels = txt_files[:split_idx]
         val_labels = txt_files[split_idx:]
         
-        print("START STEP 1/4")
+        print("START STEP 1/6")
         train_imgs = list()
         val_imgs = list()
         for train_label in tqdm(train_labels):
             train_img = os.path.splitext(train_label)[0] + '.jpg'
             train_imgs.append(train_img)
             
-        print("START STEP 2/4")
+        print("START STEP 2/6")
         for val_label in tqdm(val_labels):
             val_img = os.path.splitext(val_label)[0] + '.jpg'
             val_imgs.append(val_img)
         
         # Copy labels to each train and val folder
-        print("START STEP 3/4")
+        print("START STEP 3/6")
         copying_dir = os.path.join(self.yolo_dir, 'labels', 'train')
         if os.path.exists(copying_dir):
             shutil.rmtree(copying_dir)
@@ -90,7 +90,7 @@ class CustomDataset(Dataset):
             copying_path = os.path.join(copying_dir, train_label)
             shutil.copy(source_path, copying_path)
         
-        print("START STEP 4/4")
+        print("START STEP 4/6")
         copying_dir = os.path.join(self.yolo_dir, 'labels', 'val')
         if os.path.exists(copying_dir):
             shutil.rmtree(copying_dir)
@@ -99,7 +99,28 @@ class CustomDataset(Dataset):
             source_path = os.path.join(self.label_dir, val_label)
             copying_path = os.path.join(copying_dir, val_label)
             shutil.copy(source_path, copying_path)
+            
+        # Copy images to each train and val folder
+        print("START STEP 5/6")
+        copying_dir = os.path.join(self.yolo_dir, 'images','train')
+        if os.path.exists(copying_dir):
+            shutil.rmtree(copying_dir)
+        os.makedirs(copying_dir)
+        for train_img in tqdm(train_imgs):
+            source_path = os.path.join(self.img_dir, train_img)
+            copying_path = os.path.join(copying_dir, train_img)
+            shutil.copy(source_path, copying_path)
         
+        print("START STEP 6/6")
+        copying_dir = os.path.join(self.yolo_dir, 'images', 'val')
+        if os.path.exists(copying_dir):
+            shutil.rmtree(copying_dir)
+        os.makedirs(copying_dir)
+        for val_img in tqdm(val_imgs):
+            source_path = os.path.join(self.img_dir, val_img)
+            copying_path = os.path.join(copying_dir, val_img)
+            shutil.copy(source_path, copying_path)
+            
     #===============================================================================================#
     #===============================================================================================#
     # To alleviate long-tail problem -> wrong method
