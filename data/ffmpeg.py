@@ -1,8 +1,11 @@
 import os
+import shutil
 import subprocess
 
 def frame_extraction(load_dir, save_dir, fps='fps=10'):
     load_path = sorted(os.listdir(load_dir))
+    if os.path.exists(save_dir):
+        shutil.rmtree(save_dir)
     os.makedirs(save_dir, exist_ok=True)
     for i, video in enumerate(load_path):
         input_file = os.path.join(load_dir, video)
@@ -16,5 +19,5 @@ def frame_extraction(load_dir, save_dir, fps='fps=10'):
         subprocess.run(command)
 
 if __name__ == "__main__":
-    frame_extraction(load_dir='../datasets/raw_dataset/videos/test', 
-                     save_dir='../datasets/raw_dataset/images/test')
+    frame_extraction(load_dir='../datasets/raw_dataset/videos/train', 
+                     save_dir='../datasets/raw_dataset/images/train')

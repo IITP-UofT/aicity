@@ -23,7 +23,7 @@ class CustomDataset(Dataset):
         annotations = [line.strip().split(',') for line in lines]
         return annotations
     
-    def convert_data_to_yolo_v1(self):
+    def convert_data_to_yolo(self):
         # To generate label directory
         if os.path.exists(self.label_dir):
             shutil.rmtree(self.label_dir)
@@ -58,7 +58,51 @@ class CustomDataset(Dataset):
             with open(txt_path, 'a') as file:
                 file.write(yolo_format + '\n')
     
-    # To alleviate long-tail problem
+    def train_val_split(self):
+        txt_files = [f for f in os.listdir(self.label_dir) if os.path.isfile(os.path.join(self.label_dir, f))]
+        random.seed(42)
+        random.shuffle(txt_files)
+        train_ratio = 0.8
+        split_idx = int(len(txt_files) * train_ratio)
+        train_labels = txt_files[:split_idx]
+        val_labels = txt_files[split_idx:]
+        
+        print("START STEP 1/4")
+        train_imgs = list()
+        val_imgs = list()
+        for train_label in tqdm(train_labels):
+            train_img = os.path.splitext(train_label)[0] + '.jpg'
+            train_imgs.append(train_img)
+            
+        print("START STEP 2/4")
+        for val_label in tqdm(val_labels):
+            val_img = os.path.splitext(val_label)[0] + '.jpg'
+            val_imgs.append(val_img)
+        
+        # Copy labels to each train and val folder
+        print("START STEP 3/4")
+        copying_dir = os.path.join(self.yolo_dir, 'labels', 'train')
+        if os.path.exists(copying_dir):
+            shutil.rmtree(copying_dir)
+        os.makedirs(copying_dir)
+        for train_label in tqdm(train_labels):
+            source_path = os.path.join(self.label_dir, train_label)
+            copying_path = os.path.join(copying_dir, train_label)
+            shutil.copy(source_path, copying_path)
+        
+        print("START STEP 4/4")
+        copying_dir = os.path.join(self.yolo_dir, 'labels', 'val')
+        if os.path.exists(copying_dir):
+            shutil.rmtree(copying_dir)
+        os.makedirs(copying_dir)
+        for val_label in tqdm(val_labels):
+            source_path = os.path.join(self.label_dir, val_label)
+            copying_path = os.path.join(copying_dir, val_label)
+            shutil.copy(source_path, copying_path)
+        
+    #===============================================================================================#
+    #===============================================================================================#
+    # To alleviate long-tail problem -> wrong method
     def convert_data_to_yolo_v2(self):
         # To generate label directory
         if os.path.exists(self.label_dir):
@@ -104,7 +148,7 @@ class CustomDataset(Dataset):
             with open(txt_path, 'w') as file:
                 file.write(yolo_format + '\n')
     
-    def train_val_split(self):
+    def train_val_split_v2(self):
         dic = dict()
         for i in range(self.num_classes):
             dic[i] = list()
@@ -183,6 +227,8 @@ class CustomDataset(Dataset):
             source_path = os.path.join(self.img_dir, val_img)
             copying_path = os.path.join(copying_dir, val_img)
             shutil.copy(source_path, copying_path)
+    #===============================================================================================#
+    #===============================================================================================#
         
     def __len__(self):
         return len(self.annotations)
@@ -217,7 +263,7 @@ def main():
     parser.add_argument("--num_classes", type=int, default=9, help="the number of classes")
     args = parser.parse_args()
     custom_dataset = CustomDataset(args)
-    custom_dataset.convert_data_to_yolo_v2()
+    #custom_dataset.convert_data_to_yolo()
     custom_dataset.train_val_split()
     end = time.time()
     print(f"Running Time: {int((end-start)//60)}m {int((end-start)%60)}s")
