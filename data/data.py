@@ -263,7 +263,7 @@ def main():
     parser.add_argument("--num_classes", type=int, default=9, help="the number of classes")
     args = parser.parse_args()
     custom_dataset = CustomDataset(args)
-    #custom_dataset.convert_data_to_yolo()
+    custom_dataset.convert_data_to_yolo()
     custom_dataset.train_val_split()
     end = time.time()
     print(f"Running Time: {int((end-start)//60)}m {int((end-start)%60)}s")
