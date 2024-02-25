@@ -53,25 +53,17 @@ aicity
 |   |── data.py
 |   └── ffmpeg.py
 ├── datasets
-|   |── raw_dataset
-|   |   |── images
-|   |   |   |── train
-|   |   |   └── test
-|   |   |── labels
-|   |   |   └──  train
-|   |   |── videos
-|   |   |   |── train
-|   |   |   └── test
-|   |   |── gt.txt
-|   |   └── labels.txt
-|   └── yolo_dataset
-|       |── images
-|       |   |── train
-|       |   |── test 
-|       |   └── val
-|       └── labels 
-|           |── train
-|           └── val    
+|   |
+|   |── images
+|   |    |── train
+|   |   └── test
+|   |── labels
+|   |   └──  train
+|   |── videos
+|   |   |── train
+|   |   └── test
+|   |── gt.txt
+|   └── labels.txt    
 └── yolov8.py
 ```
 ## Acknowledgement
