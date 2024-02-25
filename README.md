@@ -27,20 +27,7 @@ Each motorcycle in the annotated frame has bounding box annotation of each rider
 9, P0NoHelmet: bounding box of the child sitting in front of the Driver of the motorcycle, if he/she is wearing not a helmet
 ```
 ## Training
-### STEP 1 Frame Extraction
-
-Submissions for track 5 require frame IDs for frames that contain information of interest. We use the [FFmpeg library](https://www.ffmpeg.org/) to extract/count frames to ensure frame IDs are consistent across teams.
 ```
-cd data
-python ffmpeg.py
-```
-### STEP 2 Data preprocessing
-```
-python data.py
-```
-### STEP 3 Training
-```
-cd ..
 python yolov8.py
 ```
 ### Directory Layout
