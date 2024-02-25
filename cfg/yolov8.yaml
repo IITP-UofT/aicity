@@ -1,7 +1,6 @@
-path: ./yolo_dataset
+path: /home/kongminseok/aicity/datasets
 train: images/train
-val: images/val
-test: images/test
+val: images/train
  
 # Classes
 nc: 9 # the number of classes
