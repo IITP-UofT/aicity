@@ -54,7 +54,7 @@ aicity
 |   └── ffmpeg.py
 ├── datasets
 |   |── images
-|   |    |── train
+|   |   |── train
 |   |   └── test
 |   |── labels
 |   |   └──  train
