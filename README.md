@@ -53,7 +53,6 @@ aicity
 |   |── data.py
 |   └── ffmpeg.py
 ├── datasets
-|   |
 |   |── images
 |   |    |── train
 |   |   └── test
