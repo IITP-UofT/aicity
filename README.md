@@ -35,6 +35,8 @@ python yolov8.py
 ## Directory Layout
 ```
 aicity
+|── assets
+|   └── Rider_Position_Encoding.png
 |── cfg
 |   └── yolov8.yaml
 ├── data
@@ -51,7 +53,8 @@ aicity
 |   |   |── train
 |   |   └── test
 |   |── gt.txt
-|   └── labels.txt    
+|   |── labels.txt
+|   └── ReadMe.txt
 └── yolov8.py
 ```
 ## Acknowledgement
