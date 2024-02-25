@@ -71,7 +71,7 @@ class CustomDataset(Dataset):
     # K-Fold cross-validation
     def kfold_val_split(self, yaml_file):
         dataset_path = Path(self.dataset_path)
-        labels = sorted(dataset_path.glob("labels/*.txt"))
+        labels = sorted(dataset_path.glob("labels/train/*.txt"))
         with open(yaml_file, 'r', encoding="utf8") as y:
             classes = yaml.safe_load(y)['names']
         cls_idx = sorted(classes.keys())
@@ -111,7 +111,7 @@ class CustomDataset(Dataset):
             ratio = val_totals / (train_totals + 1E-7)
             fold_label_distribution.loc[f'split_{n}'] = ratio
         
-        images = [(Path(f'{os.path.splitext(name)[0]}.jpg'.replace('labels', 'images/train'))) for name  in labels]
+        images = [(Path(f'{os.path.splitext(name)[0]}.jpg'.replace('labels', 'images'))) for name  in labels]
 
         #supported_extensions = ['.jpg', '.jpeg', '.png']
         ## Initialize an empty list to store image file paths  
