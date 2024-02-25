@@ -74,6 +74,13 @@ def train_yolov8(args):
 def submission(dataset_path, weight_path, save_path, filename):
     # submission format: 〈video_id〉, 〈frame〉, 〈bb_left〉, 〈bb_top〉, 〈bb_width〉, 〈bb_height〉, 〈class〉, 〈confidence〉
     model = YOLO(weight_path)
+    
+    save_path = Path(save_path)
+    if os.path.exists(save_path):
+        shutil.rmtree(save_path)
+    save_path.mkdir(parents=True, exist_ok=True)
+    submit_file = os.path.join(save_path, filename)
+    
     test_dir = Path(dataset_path) / 'images' / 'test'
     test_imgnames = os.listdir(test_dir)
     test_imgs = [f'{test_dir}/{imgname}' for imgname in test_imgnames]
@@ -89,11 +96,6 @@ def submission(dataset_path, weight_path, save_path, filename):
         submits = torch.cat((boxes_xywh, boxes_cls, boxes_conf), dim=1)
         submits_array = submits.numpy().astype(str)
         
-        save_path = Path(save_path)
-        if os.path.exists(save_path):
-            shutil.rmtree(save_path)
-        save_path.mkdir(parents=True, exist_ok=True)
-        submit_file = os.path.join(save_path, filename)
         with open(submit_file, 'a') as file:
             for row in submits_array:
                 row = [video_id, frame] + list(row)
@@ -155,7 +157,7 @@ def main(fe=False, cl=False, sd=False, tm=False, gs=False):
     # STEP 5. Generate the submission: gs
     if gs: # 추가로 할 일: submission arguments args로 통합
         submission(dataset_path=args.dataset_path,
-                   weight_path="/home/kongminseok/aicity/practices/practice_12/weights/best.pt",
+                   weight_path="/home/kongminseok/aicity/practices/accessible/weights/best.pt",
                    save_path='/home/kongminseok/aicity/submissions',
                    filename='submission.txt')
     
@@ -163,5 +165,5 @@ def main(fe=False, cl=False, sd=False, tm=False, gs=False):
     print(f"Running Time: {int((end-start)//60)}m {int((end-start)%60)}s")
     
 if __name__=="__main__":
-    main(sd=True, tm=True, gs=True)
+    main()
     
