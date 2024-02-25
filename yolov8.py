@@ -138,6 +138,7 @@ def main(fe=False, cl=False, sd=False, tm=False, gs=False):
     # STEP 2. convert the labels: cl
     if cl:
         custom_dataset.convert_data_to_yolo()
+        
     # STEP 3. split the dataset: sd
     if sd:
         if args.val_type=='kfold':
@@ -162,5 +163,5 @@ def main(fe=False, cl=False, sd=False, tm=False, gs=False):
     print(f"Running Time: {int((end-start)//60)}m {int((end-start)%60)}s")
     
 if __name__=="__main__":
-    main(fe=True, cl=True, sd=True, tm=True, gs=True)
+    main(sd=True, tm=True, gs=True)
     
