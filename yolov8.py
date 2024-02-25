@@ -100,7 +100,7 @@ def submission(dataset_path, weight_path, save_path, filename):
             for row in submits_array:
                 row = [video_id, frame] + list(row)
                 row[-2] = str(int(float(row[-2])))
-                file.write(' '.join(row) + '\n')
+                file.write(','.join(row) + '\n')
                 
     # sorting
     submit_file = os.path.join(save_path, filename)
