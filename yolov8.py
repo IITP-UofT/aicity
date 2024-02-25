@@ -72,7 +72,7 @@ def train_yolov8(args):
         return
                     
 def submission(dataset_path, weight_path, save_path, filename):
-    # submission format: 〈video_id〉, 〈frame〉, 〈bb_left〉, 〈bb_top〉, 〈bb_width〉, 〈bb_height〉, 〈class〉, 〈confidence〉
+    # submission format: 〈video_id〉, 〈frame〉, 〈bb_left〉, 〈bb_top〉, 〈bb_width〉, 〈bb_height〉, 〈class_id〉, 〈confidence〉
     model = YOLO(weight_path)
     
     save_path = Path(save_path)
@@ -91,7 +91,8 @@ def submission(dataset_path, weight_path, save_path, filename):
         result = model(test_img, verbose=False)
         boxes = result[0].boxes
         boxes_xywh = boxes.xywh.to('cpu')
-        boxes_cls = boxes.cls.to('cpu').unsqueeze(1)
+        # restore original class_id
+        boxes_cls = (boxes.cls + 1).to('cpu').unsqueeze(1)
         boxes_conf = boxes.conf.to('cpu').unsqueeze(1)
         submits = torch.cat((boxes_xywh, boxes_cls, boxes_conf), dim=1)
         submits_array = submits.numpy().astype(str)
@@ -109,7 +110,7 @@ def submission(dataset_path, weight_path, save_path, filename):
     
     data = []
     for line in lines:
-        ann = line.split()
+        ann = line.split(',')
         video_id = int(ann[0].strip())
         frame = int(ann[1].strip())
         data.append((video_id, frame, line))
