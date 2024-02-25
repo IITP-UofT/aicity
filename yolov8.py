@@ -90,11 +90,19 @@ def submission(dataset_path, weight_path, save_path, filename):
         video_id, frame = os.path.splitext(test_imgname)[0].replace('v','').replace('f','').split('_')
         result = model(test_img, verbose=False)
         boxes = result[0].boxes
+        
+        # restore original bboxes coordinates
         boxes_xywh = boxes.xywh.to('cpu')
+        bboxes = torch.empty_like(boxes_xywh)
+        bboxes[:, 0] = boxes_xywh[:, 0] - (boxes_xywh[:, 2] / 2)
+        bboxes[:, 1] = boxes_xywh[:, 1] - (boxes_xywh[:, 3] / 2)
+        bboxes[:, 2] = boxes_xywh[:, 2]
+        bboxes[:, 3] = boxes_xywh[:, 3]
+        
         # restore original class_id
         boxes_cls = (boxes.cls + 1).to('cpu').unsqueeze(1)
         boxes_conf = boxes.conf.to('cpu').unsqueeze(1)
-        submits = torch.cat((boxes_xywh, boxes_cls, boxes_conf), dim=1)
+        submits = torch.cat((bboxes, boxes_cls, boxes_conf), dim=1)
         submits_array = submits.numpy().astype(str)
         
         with open(submit_file, 'a') as file:
@@ -166,5 +174,5 @@ def main(fe=False, cl=False, sd=False, tm=False, gs=False):
     print(f"Running Time: {int((end-start)//60)}m {int((end-start)%60)}s")
     
 if __name__=="__main__":
-    main()
+    main(gs=True)
     
