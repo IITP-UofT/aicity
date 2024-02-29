@@ -20,15 +20,15 @@ The training dataset contains 100 videos and groundtruth bounding boxes of motor
 Each motorcycle in the annotated frame has bounding box annotation of each rider with or without helmet information, for upto a maximum of 4 riders in a motorcycle. The class id (labels) of the object classes in this dataset is as follows:
 
 ```
-1, (1) motorbike: bounding box of motorcycle
-2, (2) DHelmet: bounding box of the motorcycle driver, if he/she is wearing a helmet
-3, (3) DNoHelmet: bounding box of the motorcycle driver, if he/she is not wearing a helmet
-4, (4) P1Helmet: bounding box of the passenger 1 of the motorcycle, if he/she is wearing a helmet
-5, (5) P1NoHelmet: bounding box of the passenger 1 of the motorcycle, if he/she is not wearing a helmet
-6, (6) P2Helmet: bounding box of the passenger 2 of the motorcycle, if he/she is wearing a helmet
-7, (7) P2NoHelmet: bounding box of the passenger 2 of the motorcycle, if he/she is not wearing a helmet
-8, (8) P0Helmet: bounding box of the child sitting in front of the Driver of the motorcycle, if he/she is wearing a helmet
-9, (9) P0NoHelmet: bounding box of the child sitting in front of the Driver of the motorcycle, if he/she is wearing not a helmet
+1, motorbike: bounding box of motorcycle
+2, DHelmet: bounding box of the motorcycle driver, if he/she is wearing a helmet
+3, DNoHelmet: bounding box of the motorcycle driver, if he/she is not wearing a helmet
+4, P1Helmet: bounding box of the passenger 1 of the motorcycle, if he/she is wearing a helmet
+5, P1NoHelmet: bounding box of the passenger 1 of the motorcycle, if he/she is not wearing a helmet
+6, P2Helmet: bounding box of the passenger 2 of the motorcycle, if he/she is wearing a helmet
+7, P2NoHelmet: bounding box of the passenger 2 of the motorcycle, if he/she is not wearing a helmet
+8, P0Helmet: bounding box of the child sitting in front of the Driver of the motorcycle, if he/she is wearing a helmet
+9, P0NoHelmet: bounding box of the child sitting in front of the Driver of the motorcycle, if he/she is wearing not a helmet
 ```
 ## Training
 ```
