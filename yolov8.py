@@ -11,17 +11,39 @@ from pathlib import Path
 from ultralytics import YOLO
 from data.data import CustomDataset, frame_extraction
 
-# 추가로 할 일: train 하이퍼파라미터 args로 통합
+from sahi.models.yolov8 import Yolov8DetectionModel
+from sahi.predict import get_sliced_prediction
+
 def train_yolov8(args):
-    # default imgsz(nHD): 640*260, original imgsz(FHD) = 1920 * 1080, input imgsz(HD) = 1280 * 720
     val_df = pd.DataFrame(columns = ['All'] + [str(i) for i in range(1, 10)])
     if args.val_type=='kfold':
-        dataset_yamls = list(Path('/home/kongminseok/aicity/datasets/kfold/cfg').glob("*.yaml"))
+        dataset_yamls = list(Path('/user/datasets/kfold/cfg').glob("*.yaml"))
         for k in range(args.ksplit):
             dataset_yaml = dataset_yamls[k]
+
+            ###########
+            #<<keep training>>
+            # pretrained_model_path = f'practices/split_14/weights/best.pt'
+            
+            # model = YOLO(pretrained_model_path, task='train')
+            # model.train(data=dataset_yaml,
+            #             epochs=20,  # adding 20 epoch 
+            #             batch=16,
+            #             device=[0, 1],
+            #             save=True,
+            #             save_period=1,
+            #             seed=0,
+            #             project="practices_continued",
+            #             name=f"split_{k+1}_continued"
+            #             )
+            
+            # model = YOLO(f'practices_continued/split_{k+1}_continued/weights/best.pt')
+            # metrics = model.val() 
+
+            ############
             model = YOLO('yolov8x.pt', task='detect')
             model.train(data=dataset_yaml, 
-                    epochs=30,
+                    epochs=15,
                     batch=16,
                     #imgsz=(1280, 720), 
                     device=[0, 1],
@@ -29,11 +51,11 @@ def train_yolov8(args):
                     save_period=1,
                     seed=0,
                     project="practices",
-                    name=f"split_{k+1}"
+                    name=f"sahi_final_aug_{k+1}"
                     )
             
-            model = YOLO(f'practices/split_{k+1}/weights/best.pt')
-            metrics = model.val() # 추가로 할 일: validation run 저장 위치 변경 어떻게 하는지 몰루?
+            model = YOLO(f'practices/sahi_final_aug_{k+1}/weights/best.pt')
+            metrics = model.val()
             all_map = metrics.box.map
             class_maps = metrics.box.maps
             maps = np.concatenate([[all_map], class_maps])
@@ -41,9 +63,24 @@ def train_yolov8(args):
             val_df = pd.concat([val_df, maps_df], axis=0, ignore_index=False)
         
         val_df.to_csv('validation_result.csv',encoding='utf-8', index=True)
+
+        # ####<<keep training>>
+        # model = YOLO(pretrained_model_path, task='detect')
+
+        # model.train(data='/user/cfg/yolov8.yaml', 
+        #         epochs=20, 
+        #         batch=16,
+        #         device=[0, 1],  
+        #         save=True,
+        #         save_period=1,
+        #         seed=0,
+        #         val=True,
+        #         project="practices_continued", 
+        #         name="accessible_continued")
+
         model = YOLO('yolov8x.pt', task='detect')
-        model.train(data='/home/kongminseok/aicity/cfg/yolov8.yaml', 
-                    epochs=30,
+        model.train(data='/user/cfg/yolov8.yaml', 
+                    epochs=15,
                     batch=16,
                     #imgsz=(1280, 720), 
                     device=[0, 1],
@@ -52,12 +89,13 @@ def train_yolov8(args):
                     seed=0,
                     val=False,
                     project="practices",
-                    name=f"accessible")
+                    name=f"sahi_final_accessible")
         print(f'Final validation mAP50-95: {val_df.All.mean()}')
             
     elif args.val_type=='holdout':
-        model.train(data="/home/kongminseok/aicity/cfg/yolov8.yaml", 
-                    epochs=1,
+        model = YOLO('yolov8x.pt', task='detect')
+        model.train(data="/user/cfg/yolov8.yaml", 
+                    epochs=30,
                     batch=16, 
                     #imgsz=(1280, 720), 
                     device=[0, 1],
@@ -65,7 +103,7 @@ def train_yolov8(args):
                     save_period=1,
                     seed=0,
                     project="practices",
-                    name="practice_1"
+                    name="practice"
                     )
     else:
         print("The training was not conducted. Please select either 'kfold' or 'holdout' for the 'val_type' argument.")
@@ -81,28 +119,54 @@ def submission(dataset_path, weight_path, save_path, filename):
     save_path.mkdir(parents=True, exist_ok=True)
     submit_file = os.path.join(save_path, filename)
     
-    test_dir = Path(dataset_path) / 'images' / 'test'
+    test_dir = Path(dataset_path) / 'images' / 'val'
     test_imgnames = os.listdir(test_dir)
     test_imgs = [f'{test_dir}/{imgname}' for imgname in test_imgnames]
     for i, (test_img, test_imgname) in enumerate((zip(test_imgs, test_imgnames))):
         if (i+1)%10==0:
             print(f"Complete {i+1}/{len(test_imgnames)} img")
         video_id, frame = os.path.splitext(test_imgname)[0].replace('v','').replace('f','').split('_')
-        result = model(test_img, verbose=False)
-        boxes = result[0].boxes
-        
-        # restore original bboxes coordinates
-        boxes_xywh = boxes.xywh.to('cpu')
-        bboxes = torch.empty_like(boxes_xywh)
-        bboxes[:, 0] = boxes_xywh[:, 0] - (boxes_xywh[:, 2] / 2)
-        bboxes[:, 1] = boxes_xywh[:, 1] - (boxes_xywh[:, 3] / 2)
-        bboxes[:, 2] = boxes_xywh[:, 2]
-        bboxes[:, 3] = boxes_xywh[:, 3]
-        
-        # restore original class_id
-        boxes_cls = (boxes.cls + 1).to('cpu').unsqueeze(1)
-        boxes_conf = boxes.conf.to('cpu').unsqueeze(1)
-        submits = torch.cat((bboxes, boxes_cls, boxes_conf), dim=1)
+
+        ###sahi prediction
+        detection_model= Yolov8DetectionModel(
+            model_path=weight_path,
+            confidence_threshold=0.3,
+            image_size = (1920,1080),
+        )
+
+        sahi_result = get_sliced_prediction(
+            test_img,
+            detection_model,
+            slice_height = 800,
+            slice_width = 800,
+            overlap_height_ratio = 0.2,
+            overlap_width_ratio = 0.2
+        )
+        sahi_bbox= []
+        sahi_cls =[]
+        sahi_conf = []
+        sahi_result_list = sahi_result.object_prediction_list
+        for i in range(len(sahi_result_list)):
+            sahi_width=sahi_result_list[i].bbox.maxx - sahi_result_list[i].bbox.minx
+            sahi_height = sahi_result_list[i].bbox.maxy - sahi_result_list[i].bbox.miny   
+            sahi_onebox=torch.tensor([[sahi_result_list[i].bbox.minx,sahi_result_list[i].bbox.miny, sahi_width, sahi_height]])
+            sahi_bbox.append(sahi_onebox)
+
+            sahi_onecls = torch.tensor([sahi_result_list[i].category.id +1], dtype=torch.float64)
+            sahi_cls.append(sahi_onecls)
+
+            sahi_score =  torch.tensor([sahi_result_list[i].score.value], dtype=torch.float64)
+            sahi_conf.append(sahi_score)
+
+
+        if not sahi_bbox:
+            continue
+
+        final_bbox = torch.cat(sahi_bbox, dim=0)
+        final_cls = torch.stack(sahi_cls, dim=0)
+        final_conf = torch.stack(sahi_conf, dim=0)
+
+        submits = torch.cat((final_bbox, final_cls, final_conf), dim=1)
         submits_array = submits.numpy().astype(str)
         
         with open(submit_file, 'a') as file:
@@ -131,10 +195,10 @@ def submission(dataset_path, weight_path, save_path, filename):
             
     print(f"Complete to generate submission file.")
     
-def main(fe=False, cl=False, sd=False, tm=False, gs=False):
+def main(fe=False, cl=False, sahi=False, sd=False, tm=False, gs=True):
     start = time.time()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_path", type=str, default="/home/kongminseok/aicity/datasets", help="")
+    parser.add_argument("--dataset_path", type=str, default="/user/datasets/", help="")
     parser.add_argument("--ksplit", type=int, default=5, help="")
     parser.add_argument("--seed", type=int, default=42, help="")
     parser.add_argument("--val_type", type=str, default="kfold", help="select either 'kfold' or 'holdout'")
@@ -149,25 +213,29 @@ def main(fe=False, cl=False, sd=False, tm=False, gs=False):
     # STEP 2. convert the labels: cl
     if cl:
         custom_dataset.convert_data_to_yolo()
+
+    # STEP 3. applying SAHI
+    if sahi:
+        custom_dataset.slicing_with_sahi()
         
-    # STEP 3. split the dataset: sd
+    # STEP 4. split the dataset: sd
     if sd:
         if args.val_type=='kfold':
-            custom_dataset.kfold_val_split(yaml_file='/home/kongminseok/aicity/cfg/yolov8.yaml')
+            custom_dataset.kfold_val_split(yaml_file='/user/cfg/yolov8.yaml')
         elif args.val_type=='holdout':
             custom_dataset.holdout_val_split()
         else:
             print("Splitting the data was not conducted. Please select either 'kfold' or 'holdout' for the 'val_type' argument.")
     
-    # STEP 4. Train the model: tm
+    # STEP 5. Train the model: tm
     if tm:
         train_yolov8(args)
     
-    # STEP 5. Generate the submission: gs
-    if gs: # 추가로 할 일: submission arguments args로 통합
+    # STEP 6. Generate the submission: gs
+    if gs:
         submission(dataset_path=args.dataset_path,
-                   weight_path="/home/kongminseok/aicity/practices/accessible/weights/best.pt",
-                   save_path='/home/kongminseok/aicity/submissions',
+                   weight_path="/user/best.pt",
+                   save_path='/user/submissions_sahi_more_epoch',
                    filename='submission.txt')
     
     end = time.time()
